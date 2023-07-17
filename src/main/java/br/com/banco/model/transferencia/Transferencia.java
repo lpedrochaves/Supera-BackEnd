@@ -23,9 +23,7 @@ public class Transferencia {
 	private Long id;
 	@Column(name = "data_transferencia", nullable = false)
 	private LocalDateTime dataTransferencia;
-	// precision = 20, scale = 2,
 	@Column(name = "valor", precision = 20, scale = 2, columnDefinition = "numeric(10,2)")
-	// @Type(type = "big_decimal")
 	private Double valor;
 	@Column(name = "tipo", nullable = false, length = 15)
 	private String tipo;
