@@ -10,6 +10,7 @@ public class TransferenciaContaGetDto {
 	private Double valor;
 	private String tipo;
 	private String nomeOperadorTransacao;
+	private Double valorTotal;
 
 	public TransferenciaContaGetDto(Transferencia transferencia) {
 		this.id = transferencia.getId();
@@ -17,6 +18,23 @@ public class TransferenciaContaGetDto {
 		this.valor = transferencia.getValor();
 		this.tipo = transferencia.getTipo();
 		this.nomeOperadorTransacao = transferencia.getNomeOperadorTransacao();
+	}
+
+	public TransferenciaContaGetDto(Transferencia transferencia, Double valorTotal) {
+		this.id = transferencia.getId();
+		this.dataTransferencia = transferencia.getDataTransferencia();
+		this.valor = transferencia.getValor();
+		this.valorTotal = valorTotal;
+		this.tipo = transferencia.getTipo();
+		this.nomeOperadorTransacao = transferencia.getNomeOperadorTransacao();
+	}
+
+	public Double getValorTotal() {
+		return valorTotal;
+	}
+
+	public void setValorTotal(Double valorTotal) {
+		this.valorTotal = valorTotal;
 	}
 
 	public Long getId() {

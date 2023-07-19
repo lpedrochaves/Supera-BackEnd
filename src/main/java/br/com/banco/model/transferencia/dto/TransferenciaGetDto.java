@@ -10,6 +10,8 @@ public class TransferenciaGetDto {
 	private Double valor;
 	private String tipo;
 	private String nomeOperadorTransacao;
+	private Double valorTotal;
+	private Double valorNoPeriodo;
 
 	public TransferenciaGetDto(Transferencia transferencia) {
 		this.id = transferencia.getId();
@@ -18,6 +20,35 @@ public class TransferenciaGetDto {
 		this.valor = transferencia.getValor();
 		this.tipo = transferencia.getTipo();
 		this.nomeOperadorTransacao = transferencia.getNomeOperadorTransacao();
+
+	}
+
+	public TransferenciaGetDto(Transferencia transferencia, Double valorTotal, Double valorNoPeriodo) {
+		this.id = transferencia.getId();
+		this.dataTransferencia = LocalDate.of(transferencia.getDataTransferencia().getYear(),
+				transferencia.getDataTransferencia().getMonth(), transferencia.getDataTransferencia().getDayOfMonth());
+		this.valor = transferencia.getValor();
+		this.tipo = transferencia.getTipo();
+		this.nomeOperadorTransacao = transferencia.getNomeOperadorTransacao();
+		this.valorTotal = valorTotal;
+		this.valorNoPeriodo = valorNoPeriodo;
+	}
+
+
+	public Double getValorTotal() {
+		return valorTotal;
+	}
+
+	public void setValorTotal(Double valorTotal) {
+		this.valorTotal = valorTotal;
+	}
+
+	public Double getValorNoPeriodo() {
+		return valorNoPeriodo;
+	}
+
+	public void setValorNoPeriodo(Double valorNoPeriodo) {
+		this.valorNoPeriodo = valorNoPeriodo;
 	}
 
 	public Long getId() {

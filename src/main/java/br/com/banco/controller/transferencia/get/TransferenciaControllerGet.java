@@ -5,14 +5,15 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.banco.model.conta.dto.TransferenciaContaGetDto;
+
 import br.com.banco.model.transferencia.dto.TransferenciaGetDto;
 import br.com.banco.service.transferencia.TransferenciaService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/transferencia")
@@ -22,32 +23,34 @@ public class TransferenciaControllerGet {
 	private TransferenciaService transferenciaService;
 
 	@GetMapping
-	public ResponseEntity<List<TransferenciaContaGetDto>> listarTodos() {
+	public ResponseEntity<List<TransferenciaGetDto>> listarTodos() {
 		return ResponseEntity.ok(transferenciaService.findAll());
 	}
 
-	@GetMapping("/buscar-por-nome/nome")
-	public ResponseEntity<Object> search(@RequestParam String nome) throws Exception {
+	@GetMapping("/paginada")
+	public ResponseEntity<Page<TransferenciaGetDto>> listarTodosPaginada(Pageable pageable) {
+		return ResponseEntity.ok(transferenciaService.findAllPaginada(pageable));
+	}
+
+	@GetMapping("/buscar-por-nome-paginada")
+	public ResponseEntity<Object> busPorNomePaginada(@RequestParam String nome, Pageable pageable) throws Exception {
 		if (nome == null) {
 			return ResponseEntity.ok(transferenciaService.findAll());
 		}
-		return ResponseEntity.ok(transferenciaService.buscarPorNome(nome));
+		return ResponseEntity.ok(transferenciaService.buscarPorNomePaginada(nome, pageable));
 	}
 
-	@GetMapping("/data-inicio/{dataInicial}")
-	public ResponseEntity<List<TransferenciaGetDto>> buscarPorData(@PathVariable String dataInicial) throws Exception {
-		return ResponseEntity.ok(transferenciaService.buscarPorDataInicial(dataInicial));
+	@GetMapping("/busca-total-paginada")
+	public ResponseEntity<Page<TransferenciaGetDto>> buscarTotalPaginada(@RequestParam String dataInicial,
+			@RequestParam String dataFinal, @RequestParam String nome, Pageable pageable) throws Exception {
+		return ResponseEntity
+				.ok(transferenciaService.buscarComTodosCamposPaginada(dataInicial, dataFinal, nome, pageable));
 	}
 
-	@GetMapping("/data-fim/{dataFinal}")
-	public ResponseEntity<List<TransferenciaGetDto>> buscarPorDataFinal(@PathVariable String dataFinal)
-			throws Exception {
-		return ResponseEntity.ok(transferenciaService.buscarPorDataFinal(dataFinal));
-	}
-	@GetMapping("/busca-total")
-	public ResponseEntity<List<TransferenciaGetDto>> buscarTotal(@RequestParam String dataInicial,
-			@RequestParam String dataFinal, @RequestParam String nome)  {
-		return ResponseEntity.ok(transferenciaService.buscarComTodosCampos(dataInicial, dataFinal, nome));
+	@GetMapping("/busca-por-periodo-paginada")
+	public ResponseEntity<Page<TransferenciaGetDto>> buscarPorPeriodoPaginada(@RequestParam String dataInicial,
+			@RequestParam String dataFinal, Pageable pageable) throws Exception {
+		return ResponseEntity.ok(transferenciaService.buscarComPeriodoPaginada(dataInicial, dataFinal, pageable));
 	}
 
 }

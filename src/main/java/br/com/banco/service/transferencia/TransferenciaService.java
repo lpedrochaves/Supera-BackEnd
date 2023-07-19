@@ -1,17 +1,18 @@
 package br.com.banco.service.transferencia;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import br.com.banco.model.conta.dto.TransferenciaContaGetDto;
 import br.com.banco.model.transferencia.Transferencia;
 import br.com.banco.model.transferencia.dto.TransferenciaGetDto;
 import br.com.banco.repository.transferencia.TransferenciaRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class TransferenciaService {
@@ -19,70 +20,102 @@ public class TransferenciaService {
 	@Autowired
 	private TransferenciaRepository transferenciaRepository;
 
-	public List<TransferenciaContaGetDto> findAll() {
-		List<Transferencia> transferencias = transferenciaRepository.findAll();
-		List<TransferenciaContaGetDto> transDtos = new ArrayList<>();
-		for (Transferencia transferencia : transferencias) {
-			transDtos.add(new TransferenciaContaGetDto(transferencia));
+	public Page<TransferenciaGetDto> buscarPorNomePaginada(String nome, Pageable pageable) throws Exception {
+		Double valorTotal = 0.0;
+		Double valorNoPeriodo = 0.0;
+		List<Transferencia> transferenciaFindAll = transferenciaRepository.findAll();
+		for (Transferencia t : transferenciaFindAll) {
+			valorTotal += t.getValor();
 		}
-
-		return transDtos;
-	}
-
-	public List<TransferenciaGetDto> buscarPorNome(String nome) throws Exception {
-		List<Transferencia> transferencia = transferenciaRepository.findByNomeOperadorTransacao(nome);
-		List<TransferenciaGetDto> transDtos = new ArrayList<>();
-		if (transferencia == null) {
+		Page<Transferencia> transferenciaPage = transferenciaRepository.findByNomeOperadorTransacaoPaginada(nome,
+				pageable);
+		if (transferenciaPage.isEmpty()) {
 			throw new Exception("Transferência não encontrada");
 		}
-		for (Transferencia transf : transferencia) {
-			transDtos.add(new TransferenciaGetDto(transf));
+		List<TransferenciaGetDto> transDtos = new ArrayList<>();
+		for (Transferencia transf : transferenciaPage.getContent()) {
+			valorNoPeriodo += transf.getValor();
+			transDtos.add(new TransferenciaGetDto(transf, valorTotal, valorNoPeriodo));
 		}
-		return transDtos;
+		return new PageImpl<>(transDtos, pageable, transferenciaPage.getTotalElements());
 	}
 
-	public List<TransferenciaGetDto> buscarPorDataInicial(String data) {
-		List<Transferencia> transferencias = transferenciaRepository.findAll();
-		List<TransferenciaGetDto> transDtos = new ArrayList<>();
-
-		// CASO UTILIZE UMA STRING COMO PARAMETRO
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		LocalDate date = LocalDate.parse(data, formatter);
-
-		for (Transferencia transferencia : transferencias) {
-			if (date.isBefore(LocalDate.of(transferencia.getDataTransferencia().getYear(),
-					transferencia.getDataTransferencia().getMonth(),
-					transferencia.getDataTransferencia().getDayOfMonth()))) {
-				transDtos.add(new TransferenciaGetDto(transferencia));
-			}
+	public Page<TransferenciaGetDto> buscarComTodosCamposPaginada(String dataInicio, String dataFim, String nome,
+			Pageable pageable) throws Exception {
+		Double valorTotal = 0.0;
+		Double valorNoPeriodo = 0.0;
+		List<Transferencia> transferenciaFindAll = transferenciaRepository.findAll();
+		for (Transferencia t : transferenciaFindAll) {
+			valorTotal += t.getValor();
 		}
-		return transDtos;
+		Page<Transferencia> transferenciaPage = transferenciaRepository.buscarTransferenciaPaginada(dataInicio, dataFim,
+				nome, pageable);
+		if (transferenciaPage.isEmpty()) {
+			throw new Exception("Transferência não encontrada");
+		}
+
+		List<TransferenciaGetDto> transDtos = new ArrayList<>();
+		for (Transferencia transf : transferenciaPage.getContent()) {
+			valorNoPeriodo += transf.getValor();
+			transDtos.add(new TransferenciaGetDto(transf, valorTotal, valorNoPeriodo));
+		}
+		return new PageImpl<>(transDtos, pageable, transferenciaPage.getTotalElements());
 	}
 
-	public List<TransferenciaGetDto> buscarPorDataFinal(String data) {
-		List<Transferencia> transferencias = transferenciaRepository.findAll();
-		List<TransferenciaGetDto> transDtos = new ArrayList<>();
-
-		// CASO UTILIZE UMA STRING COMO PARAMETRO
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		LocalDate date = LocalDate.parse(data, formatter);
-
-		for (Transferencia transferencia : transferencias) {
-			if (date.isAfter(LocalDate.of(transferencia.getDataTransferencia().getYear(),
-					transferencia.getDataTransferencia().getMonth(),
-					transferencia.getDataTransferencia().getDayOfMonth()))) {
-				transDtos.add(new TransferenciaGetDto(transferencia));
-			}
+	public Page<TransferenciaGetDto> buscarComPeriodoPaginada(String dataInicio, String dataFim, Pageable pageable)
+			throws Exception {
+		Double valorTotal = 0.0;
+		Double valorNoPeriodo = 0.0;
+		List<Transferencia> transferenciaFindAll = transferenciaRepository.findAll();
+		for (Transferencia t : transferenciaFindAll) {
+			valorTotal += t.getValor();
 		}
-		return transDtos;
+		Page<Transferencia> transferenciaPage = transferenciaRepository
+				.buscarTransferenciaPorPeriodoPaginada(dataInicio, dataFim, pageable);
+		if (transferenciaPage.isEmpty()) {
+			throw new Exception("Transferência não encontrada");
+		}
+		List<TransferenciaGetDto> transDtos = new ArrayList<>();
+		for (Transferencia transf : transferenciaPage.getContent()) {
+
+			valorNoPeriodo += transf.getValor();
+			transDtos.add(new TransferenciaGetDto(transf, valorTotal, valorNoPeriodo));
+		}
+		return new PageImpl<>(transDtos, pageable, transferenciaPage.getTotalElements());
 	}
 
-	public List<TransferenciaGetDto> buscarComTodosCampos(String dataInicio, String dataFim, String nome){
-		List<Transferencia> transferencia = transferenciaRepository.buscarTransferencia(dataInicio, dataFim, nome);
-		List<TransferenciaGetDto> transDtos = new ArrayList<>();
-		for (Transferencia transf : transferencia) {
-			transDtos.add(new TransferenciaGetDto(transf));
+	public Page<TransferenciaGetDto> findAllPaginada(Pageable pageable) {
+		Double valorTotal = 0.0;
+		Double valorNoPeriodo = 0.0;
+		List<Transferencia> transferenciaFindAll = transferenciaRepository.findAll();
+		for (Transferencia t : transferenciaFindAll) {
+			valorTotal += t.getValor();
 		}
+		Page<Transferencia> transferenciaPage = transferenciaRepository.buscarTodos(pageable);
+		List<TransferenciaGetDto> transDtos = new ArrayList<>();
+		for (Transferencia transferencia : transferenciaPage.getContent()) {
+			valorNoPeriodo += transferencia.getValor();
+			transDtos.add(new TransferenciaGetDto(transferencia, valorTotal, valorNoPeriodo));
+		}
+
+		return new PageImpl<>(transDtos, pageable, transferenciaPage.getTotalElements());
+	}
+
+	// Sem Paginação
+	public List<TransferenciaGetDto> findAll() {
+		Double valorTotal = 0.0;
+		Double valorNoPeriodo = 0.0;
+		List<Transferencia> transferenciaFindAll = transferenciaRepository.findAll();
+		for (Transferencia t : transferenciaFindAll) {
+			valorTotal += t.getValor();
+		}
+
+		List<TransferenciaGetDto> transDtos = new ArrayList<>();
+		for (Transferencia transferencia : transferenciaFindAll) {
+			valorNoPeriodo += transferencia.getValor();
+			transDtos.add(new TransferenciaGetDto(transferencia, valorTotal, valorNoPeriodo));
+		}
+
 		return transDtos;
 	}
 
